@@ -1,0 +1,111 @@
+---
+title: "AHP"
+author: "Erica Goto"
+date: "4/2/2019"
+output: html_document
+---
+###IPT Training Set Weight - Divided in 3 (AHP, Ordinary Logistic Regression, Validation)
+
+```{r}
+library(readxl)
+library(tidyverse)
+library(dplyr)
+library(readxl)
+library(effsize)
+AHP_Training <- read_excel("ipt_training_set_AHP_BGM.xlsx")
+View(AHP_Training)
+
+
+```
+
+Changing AHP Training to compute Risk Value
+```{r}
+AHP <- AHP_Training %>% 
+  select(setor, Inclinacao, Total_Moradia, Densidade, GeolDesf, Solo, CoberturaNatural, AterroLixoEntulho, cicatrizes, Instab1, Instab2, AguaTotal, VegTotal, Risco)
+
+AHP$Total_Moradia <- as.numeric(AHP$Total_Moradia)
+AHP$Densidade <- as.numeric(AHP$Densidade)
+AHP$GeolDesf <- as.numeric(AHP$GeolDesf)
+AHP$Solo <- as.numeric(AHP$Solo)
+AHP$CoberturaNatural <- as.numeric(AHP$CoberturaNatural)
+AHP$AterroLixoEntulho <- as.numeric(AHP$AterroLixoEntulho)
+AHP$cicatrizes <- as.numeric(AHP$cicatrizes)
+AHP$Instab1 <- as.numeric(AHP$Instab1)
+AHP$Instab2 <-as.numeric(AHP$Instab2)
+AHP$AguaTotal <- as.numeric(AHP$AguaTotal)
+AHP$VegTotal <- as.numeric(AHP$VegTotal)
+AHP$Inclinacao <- as.numeric(AHP$Inclinacao)
+
+
+#change values InstabSum, AguaTotal, VegTogal
+
+
+Anthrop <- AHP$Densidade +AHP$Total_Moradia + AHP$AterroLixoEntulho + AHP$AguaTotal +AHP$VegTotal
+
+
+Nat <- AHP$GeolDesf + AHP$Solo + AHP$CoberturaNatural
+
+Instab1 <-ifelse (AHP$Instab1 > 9.533, 9.533, AHP$Instab1)
+ 
+Instab2 <-ifelse (AHP$Instab2 > 16.877, 16.877, AHP$Instab2)
+InstabSum <- (Instab2 + Instab1 + AHP$cicatrizes)*(59.6/37.078)
+
+
+
+AHP1 <- AHP  %>% 
+  mutate(RiskNum =  Inclinacao +Total_Moradia + Densidade + GeolDesf + Solo 
+         + CoberturaNatural + AterroLixoEntulho +  InstabSum +  AguaTotal + VegTotal) %>% 
+select(setor, Risco, RiskNum)
+
+AHP1 <- AHP1 %>%
+  mutate(LogRisk = log10(RiskNum))
+
+colnames(AHP1) <- c("Sector", "Risk", "RiskNum", "LogRisk")
+
+
+
+AHP1$RiskNum<-round(AHP1$RiskNum)
+AHP1$LogRisk<-round(AHP1$LogRisk)
+
+
+```
+
+Ploting AHP1 to look the distribution
+```{r AHP1_plot}
+Hist <- hist(AHP1$RiskNum, breaks = 60, xlim = c(0,100), main ="Histogram of risk values", xlab = "risk value", ylab="frequency")
+QQPlot <- qqnorm(AHP1$RiskNum, main="QQPlot risk values")
+
+
+
+#Hist <- hist(AHP1$LogRisk, breaks = 100)
+
+par(mfrow=c(1,2))
+
+BoxPlot <- ggplot(AHP1, aes(x=Risk, y=RiskNum)) +
+  geom_boxplot(aes(fill=Risk)) +
+  theme_bw()+
+  ggtitle("Values for Each Degree of Risk")+
+  xlab("Risk Degree")+
+  ylab("Risk Value")+ 
+    theme(plot.title = element_text(hjust = 0.5)) ##center
+BoxPlot + scale_y_continuous(breaks=c(5,10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70,75, 80))
+
+
+Jiterplot <- ggplot (AHP1, aes(x=Risk, y=RiskNum)) +
+  geom_jitter(aes(colour = Risk), width = 0.3, alpha =0.4)+
+  theme_classic ()+ 
+      labs(x="Degree of Risk", y = "Risk Value") + 
+    theme(plot.title = element_text(hjust = 0.5)) ##center
+Jiterplot
+
+hist_ggplot <- ggplot(AHP1, aes(x=RiskNum)) +
+                        geom_histogram(aes(y=..density..), binwidth=1, color="dark green", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666", adjust=0.55) + 
+    labs(x="risk value", y = "density") + 
+    theme(plot.title = element_text(hjust = 0.5)) ##center
+
+
+  
+hist_ggplot + scale_x_continuous(limits = c(0, 100), breaks = c(0,5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80,85,90,95))
+
+```

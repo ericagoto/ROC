@@ -1,0 +1,3 @@
+"0","par(mfrow=c(5,4))"
+"0","plot.xmean.ordinaly (risk ~   building+ angle+ EN+ TC+ landfill+ garbage+ banana+ leak+ conc_rainfall_water+  tree+ wastewater+ scars+ tilted+ ground_veg+ construction_deposit+ crack+ leaning_wall"
+"0","          ,data=train.data, cr=TRUE , subn=FALSE , cex.points =0.65)"

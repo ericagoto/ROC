@@ -1,0 +1,3 @@
+"0","par(mfrow=c(3,5))"
+"0","plot.xmean.ordinaly (risk ~  building+ TC_mature_Soil+ DepTaludeAterro+  DepTaludeCorte+  construction_deposit+  crack+ leaning_wall+ scars+ downward_floor+ tilted+ conc_rainfall_water+ wastewater+ ground_veg"
+"0","          ,data=train.data, cr=TRUE , subn=FALSE , cex.points =0.65)"

@@ -1,0 +1,6 @@
+"0","new_data <- cbind (new_data, prediction)"
+"0","colnames(new_data) <-c(""Sector"", ""Risk_AHP"",""Risk_Mapped"", ""Risk_OLR"")"
+"0","new_data$Risk_AHP <- factor(new_data$Risk_AHP, levels=c(""R1"", ""R2"", ""R3"", ""R4""), ordered=TRUE)"
+"0","new_data$Risk_Mapped <- factor(new_data$Risk_Mapped, levels=c(""R1"", ""R2"", ""R3"", ""R4""), ordered=TRUE)"
+"0","new_data$Risk_OLR  <- factor(new_data$Risk_OLR , levels=c(""R1"", ""R2"", ""R3"", ""R4""), ordered=TRUE)"
+"0","new_data"

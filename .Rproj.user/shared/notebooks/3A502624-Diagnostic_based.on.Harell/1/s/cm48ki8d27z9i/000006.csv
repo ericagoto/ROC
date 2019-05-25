@@ -1,0 +1,2 @@
+"0","#Hist <- hist(AHP1$LogRisk, breaks = 100)"
+"0","par(mfrow=c(1,2))"

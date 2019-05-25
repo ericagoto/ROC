@@ -1,0 +1,8 @@
+"0","new_data <- data.frame ("
+"0","       "
+"0","       test.data$setor, "
+"0","       RiskValue, "
+"0","       test.data$risk"
+"0","        "
+"0",")"
+"0","colnames(new_data) <-c(""Sector"", ""Risk_AHP"",""Risk_Mapped"")"

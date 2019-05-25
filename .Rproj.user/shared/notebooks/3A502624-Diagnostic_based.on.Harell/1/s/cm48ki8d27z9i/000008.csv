@@ -1,0 +1,7 @@
+"0","hist_ggplot <- ggplot(Risk_Training, aes(x=RiskAHP)) +"
+"0","                        geom_histogram(aes(y=..density..), binwidth=0.8, color=""dark green"", fill=""white"")+"
+"0"," geom_density(alpha=.2, fill=""#FF6666"", adjust=0.7) + "
+"0","    labs(x=""risk value"", y = ""density"") + "
+"0","    theme(plot.title = element_text(hjust = 1)) ##center"
+"0","  "
+"0","hist_ggplot + scale_x_continuous(limits = c(0, 100), breaks = c(0,5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80,85,90,95))"

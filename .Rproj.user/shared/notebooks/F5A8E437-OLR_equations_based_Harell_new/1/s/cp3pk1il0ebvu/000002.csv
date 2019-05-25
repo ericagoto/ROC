@@ -1,0 +1,3 @@
+"0","vclust <- varclus (~ angle + building+density+EN +TC + TC_mature_Soil + TC_saprolito +  TC_weath_rock + TC_rock + TC_geol_desfav + Taterro + DepEncNatural + DepTaludeAterro + DepTaludeCorte + DepTaludeAterro + aterro + lixo + entulho + crack + belly_wall + scars + drawback + tilted + fracture + conc_rainfall_water + wastewater + leak + septic_tank + drainage + tree + ground_veg + deforestation + banana , data=train.data)"
+"2","Error in eval(predvars, data, env) : object 'aterro' not found
+"

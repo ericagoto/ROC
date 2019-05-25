@@ -1,0 +1,1 @@
+"0","Hist <- hist(Risk_Training$RiskAHP, breaks = 60, xlim = c(0,100), main =""Histogram of risk values"", xlab = ""risk value"", ylab=""frequency"")"

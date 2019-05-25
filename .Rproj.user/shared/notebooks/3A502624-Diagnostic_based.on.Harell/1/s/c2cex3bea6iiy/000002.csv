@@ -1,0 +1,2 @@
+"0","prediction <- predict(eq_OLR_03, newdata = test.data)"
+"0","prediction <- data.frame(prediction)"

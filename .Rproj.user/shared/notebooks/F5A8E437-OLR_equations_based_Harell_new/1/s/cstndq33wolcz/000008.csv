@@ -1,0 +1,3 @@
+"0","vclust <- varclus (~angle+brick+wood+mixed+ density+EN +TC + TC_mature_soil + TC_saprolite_soil +  TC_weath_rock  + TC_unstable_structure  + T_construction  + spring +  landfill + garbage  + crack + leaning_wall + scars + downward_floor + tilted + fracture + conc_rainfall + wastewater + leak + septic_tank  + tree + ground_veg + deforestation + banana + drainage , data=train.data)"
+"0","# took out density since training has 0 d4 and it was not allowing do the plot"
+"0","p <- plot(vclust)"

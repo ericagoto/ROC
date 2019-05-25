@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1557971649569.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "676C94C0",
+    "lastKnownWriteTime" : 6,
+    "last_content_update" : 1557971649569,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "CB0A6EC",
+        "caption" : "OLR",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=OLR&cache_key=CB0A6EC",
+        "displayedObservations" : 754,
+        "environment" : "",
+        "object" : "OLR",
+        "preview" : 0,
+        "totalObservations" : 754,
+        "variables" : 35
+    },
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

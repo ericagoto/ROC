@@ -1,0 +1,775 @@
+---
+title: "Diagnostic - one model"
+author: "Erica Goto"
+date: "2/10/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Library & Dataset
+```{r, warning=FALSE,  include=FALSE}
+library(MASS)
+library(tidyverse)
+library(dplyr)
+library(readxl)
+library(car)
+library(stats)
+library(nnet)
+library(glmnet)
+library(boot)
+library(nlstools)
+library (ggplot2)
+library(sf)
+library(rstanarm)
+library(caret)
+library(nnet)
+library(sure)
+library(Hmisc)
+library(stargazer)
+library(rms)
+library(plyr)
+
+OLR <- read_excel("new_dataset.xlsx")
+
+```
+
+
+
+Using OLR
+```{r, warning=FALSE,  include=FALSE}
+
+OLR$angle <- as.factor(OLR$angle) #it is not factor, categories are independent in order of importance. The same with density
+
+#if (OLR$building  == "B") {0}
+#if(OLR$building  == "W") {1}
+#if(OLR$building  == "M") {2}
+#OLR$building <-as.integer(OLR$building)
+OLR$brick <- as.logical(OLR$brick)
+OLR$wood <- as.logical(OLR$wood)
+OLR$mixed <- as.logical(OLR$mixed)
+
+OLR$EN <- as.logical(OLR$EN)
+OLR$density <- as.factor(OLR$density)
+OLR$TC <- as.logical(OLR$TC)
+OLR$TC_mature_soil <- as.logical(OLR$TC_mature_soil)
+OLR$TC_saprolite_soil <- as.logical(OLR$TC_saprolite_soil)
+OLR$TC_weath_rock <- as.logical(OLR$TC_weath_rock)
+OLR$TC_unstable_structure <- as.logical(OLR$TC_unstable_structure)
+
+
+
+OLR$T_construction <- as.logical(OLR$T_construction)
+
+OLR$landfill <- as.logical(OLR$landfill)
+OLR$garbage <- as.logical(OLR$garbage)
+OLR$crack <- as.logical(OLR$crack)
+OLR$leaning_wall <- as.logical(OLR$leaning_wall)
+OLR$scars <- as.logical(OLR$scars)
+OLR$conc_rainfall <- as.logical(OLR$conc_rainfall)
+OLR$downward_floor <- as.logical(OLR$downward_floor)
+
+OLR$spring <- as.logical(OLR$spring)
+
+
+
+OLR$tilted <- as.logical(OLR$tilted)
+OLR$fracture <- as.logical(OLR$fracture)
+OLR$wastewater <- as.logical(OLR$wastewater)
+OLR$leak <- as.logical(OLR$leak)
+OLR$septic_tank <- as.logical(OLR$septic_tank)
+OLR$drainage <- factor(OLR$drainage, levels=c("Y", "P", "N"), ordered=TRUE)
+#if(OLR$drainage  == "Y"){0}
+#if(OLR$drainage  == "P"){1}
+#if(OLR$drainage  == "N"){2}
+#OLR$drainage <- as.integer(OLR$drainage)
+
+OLR$tree <- as.logical(OLR$tree)
+OLR$ground_veg <- as.logical(OLR$ground_veg)
+OLR$deforestation <- as.logical(OLR$deforestation)
+OLR$banana <- as.logical(OLR$banana)
+OLR$risk <- factor(OLR$risk, levels=c("R1", "R2", "R3", "R4"), ordered=TRUE)
+
+
+```
+
+
+
+##Inspect Dataset Using Training and Validation
+
+```{r, warning=FALSE,  include=FALSE}
+#set.seed(1234)
+training.samples <- OLR$risk %>%
+        createDataPartition(p=0.7, list=FALSE)
+train.data  <- OLR[training.samples, ]
+test.data <- OLR[-training.samples, ]
+```
+
+
+
+##OLR Equations
+- Using all variables
+
+##Inspect Dataset Using Training and Validation
+
+- Training set divide in the Diagnostic_based.on.Harell.Rmd file
+
+```{r, fig.height=5, fig.width=7}
+vclust <- varclus (~angle+brick+wood+mixed+ density+EN +TC + TC_mature_soil + TC_saprolite_soil +  TC_weath_rock  + TC_unstable_structure  + T_construction  + spring +  landfill + garbage  + crack + leaning_wall + scars + downward_floor + tilted + fracture + conc_rainfall + wastewater + leak + septic_tank  + tree + ground_veg + deforestation + banana + drainage , data=train.data)
+
+# took out density since training has 0 d4 and it was not allowing do the plot
+
+p <- plot(vclust)
+```
+
+
+```{r, fig.height= 12, fig.width= 8, warning=FALSE}
+par(mfrow=c(6,5))
+plot.xmean.ordinaly (risk~angle+brick+wood+mixed+ density+EN +TC + TC_mature_soil + TC_saprolite_soil +  TC_weath_rock  + TC_unstable_structure  + T_construction  + spring +  landfill + garbage  + crack + leaning_wall + scars + downward_floor + tilted + fracture + conc_rainfall + wastewater + leak + septic_tank  + tree + ground_veg + deforestation + banana + drainage, data=train.data, cr=TRUE , subn=FALSE)
+
+
+#angle + building+density+EN +TC + TC_mature_Soil + TC_saprolito +  TC_weath_rock + TC_rock + TC_geol_desfav + Taterro + DepEncNatural + DepTaludeAterro + DepTaludeCorte + DepTaludeAterro + aterro + lixo + entulho + crack + belly_wall + scars + drawback + tilted + fracture + conc_rainfall_water + wastewater + leak + septic_tank + drainage + tree + ground_veg + deforestation + banana 
+```
+
+Diagnostic 2: Proportion (-5% of one of the parameters based on what is expected. Since some parameters have 2 predictors, others 5)
+
+```{r}
+
+#library(plyr)
+brick <- count(train.data$brick) %>% 
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "brick")
+
+wood <- count(train.data$wood) %>% 
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "wood")
+
+mixed <- count(train.data$mixed) %>% 
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "mixed")
+
+TC_mature_soil <- count(train.data$TC_mature_soil) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "TC_mature_soil")
+
+T_construction  <- count(train.data$T_construction ) %>%
+  mutate ("Percentage"=(freq/265)*100) %>%
+  mutate("Classifier" = "T_construction ")
+
+spring <- count(train.data$spring) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "spring")
+
+landfill <- count(train.data$landfill) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "landfill")
+
+garbage <- count(train.data$garbage) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "garbage")
+
+crack <- count(train.data$crack) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "crack")
+
+leaning_wall <- count(train.data$leaning_wall) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "leaning_wall")
+
+scars <- count(train.data$scars) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "DepTaludeAterro")
+
+downward_floor <- count(train.data$downward_floor) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "scars")
+
+tilted <- count(train.data$tilted) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "tilted")
+
+conc_rainfall <- count(train.data$conc_rainfall) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "conc_rainfall")
+
+wastewater <- count(train.data$wastewater) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "wastewater")
+
+leak <- count(train.data$leak) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "conc_rainfall_water")
+
+septic_tank <- count(train.data$septic_tank) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "septic_tank")
+
+angle <- count(train.data$angle) # angle A less than 5% but the rest are okay (3,50, 91, 277, 109) Expected=106
+angle <- angle %>%
+  mutate("Percentage"=(freq/106)*100)%>%
+  mutate("Classifier" = "angle")
+
+EN <- count(train.data$EN) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "EN")
+
+TC <- count(train.data$TC)  %>%
+  mutate ("Percentage"=(freq/265)*100) %>%
+  mutate("Classifier" = "TC")
+
+TC_saprolite_soil  <- count(train.data$TC_saprolite_soil )  %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "TC_saprolite_soil ")
+
+banana <- count(train.data$banana) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "banana")
+
+drainage <- count(train.data$drainage) %>%
+  mutate ("Percentage"=(freq/176.7)*100)%>%
+  mutate("Classifier" = "drainage")
+
+deforestation <- count(train.data$deforestation) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "deforestation")
+
+TC_unstable_structure  <- count(train.data$TC_unstable_structure ) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "TC_unstable_structure ")
+
+
+tree <- count(train.data$tree) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "tree")
+
+ground_veg <- count(train.data$ground_veg) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "ground_veg")
+
+
+density <- count(train.data$density)  %>% #(79, 415, 36) # d4 =0 
+  mutate ("Percentage"=(freq/132.5)*100)%>%
+  mutate("Classifier" = "density")
+
+TC_weath_rock  <- count(train.data$TC_weath_rock ) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "TC_weath_rock ")
+
+fracture <- count(train.data$fracture) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "fracture")
+
+
+
+
+
+
+
+
+
+df <- rbind(brick, wood, mixed, TC_mature_soil, T_construction, spring, landfill, garbage, crack, leaning_wall, scars, downward_floor, tilted, conc_rainfall, wastewater, leak, septic_tank, angle, EN, TC, TC_saprolite_soil,  banana, drainage, deforestation, TC_unstable_structure, tree, ground_veg,density, TC_weath_rock, fracture)
+
+df
+```
+
+
+
+
+TC_weath_rock, TC_rock_TC_geol_desf, fracture, TC_rock
+
+- OF: angle (slope angle), building (building material), EN (natural slope), TC_saprolito (cut slope with saprolite), Taterro (slope with landfill), DepEncostaNatural (natural slope with construction material), DepTaludeAterro (slope with landfill and construction material), DepTaludeCorte (cut slope with construction material), landfill, garbage, construction_deposit (construction material), crack, leaning_wall, scars, downward_floor, tilted, conc_rainfall_water (concentration of rainfall water), wastewater, leak, drainage 
+- MOF:TC_mature_soil (slope cut with soil), density, TC (slope cut), - - TC_geol_desfav (cut slope with geology favorable to instability), tree, ground_veg (ground vegetation), deforestation, banana 
+- NOF: TC_weath_rock (cut slope with weathering rock), TC_rock (cut slope in bedrock), fracture, septic_tank
+- GP:all classifiers minus BP classifiers
+- BP: TC_weath_rock (True N= 11 , False N=  529), TC_geol_desf (True N= 11 , False N=  529), fracture (True N=1 , False N=529), TC_rock (True N=1 , False N=529 ),  septic_tank (True N=4 , False N=526 )
+
+## Equation 1
+- consider all parameter okay from first diagnostic: 
+
+f1 <- lrm(risk ~ building + EN + TC_saprolito +
+                  Taterro + DepEncNatural + DepTaludeAterro + DepTaludeCorte +
+                  landfill + garbage + construction_deposit + crack +
+                  leaning_wall + scars + downward_floor +tilted +
+                  conc_rainfall_water + wastewater + leak + tree + ground_veg + banana
+          , data=train.data, x=TRUE , y=TRUE)
+          
+
+f1 <- lrm(risk ~ building + EN + TC_saprolito +
+                  Taterro + DepEncNatural + DepTaludeAterro + DepTaludeCorte +
+                  landfill + garbage + construction_deposit + crack +
+                  leaning_wall + scars + downward_floor +tilted +
+                  conc_rainfall_water + wastewater + leak + tree + ground_veg + banana + septic_tank
+                  +TC_mature_Soil
+          , data=train.data, x=TRUE , y=TRUE)
+print (f1 , latex =TRUE , coefs =5)
+stargazer(anova(f1), type="text", style="default")
+
+```{r}
+
+# Equation 1
+
+eq_OLR_01 <- polr(risk ~ brick+ wood+ EN +  TC_mature_soil + T_construction + spring+ landfill+ leak+ garbage+ crack+ leaning_wall+ scars+ downward_floor+ tilted+ septic_tank+ conc_rainfall+ wastewater+ ground_veg + angle + TC_saprolite_soil, data= train.data
+           ,  method = "logistic", Hess = TRUE)
+ctable <- coef(summary(eq_OLR_01))
+
+
+
+p<- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE*2) #computes p value
+ctable <- cbind(ctable, "p value" = p )
+
+ctable
+stargazer((ctable), type="text", style="default", digits = 2)
+
+```
+
+less p-value = 0.10 (TC_saprolitoTRUE,TaterroTRUE, DepTaludeAterroTRUE,DepTaludeAterroTRUE,landfillTRUE,  construction_depositTRUE,  leakTRUE)
+
+
+```{r, fig.height= 9, fig.width= 7}
+
+par(mfrow=c(5,4))
+plot.xmean.ordinaly (risk~ brick+ wood+ EN +  TC_mature_soil + T_construction + spring+ landfill+ leak+ garbage+ crack+ leaning_wall+ scars+ downward_floor+ tilted+ septic_tank+ conc_rainfall+ wastewater+ ground_veg + angle + TC_saprolite_soil
+          ,data=train.data, cr=TRUE , subn=FALSE ,  cex.lab=1.5, cex.axis=2, cex.sub=2, cex.main=2)
+```
+
+
+
+
+
+
+# Creating function with four level 
+
+Equation 1
+```{r,  fig.width=7, fig.height=16}
+sf <- function (y) {
+        c('y>=1' = qlogis(mean(y>=1)),
+          'y>=2' = qlogis(mean(y>=2)),
+           'y>=3' = qlogis(mean(y>=3)),
+            'y>=4' = qlogis(mean(y>=4)))
+}
+
+s<-with(train.data, summary(as.numeric(risk)~brick+ wood+ EN +  TC_mature_soil + T_construction + spring+ landfill+ leak+ garbage+ crack+ leaning_wall+ scars+ downward_floor+ tilted+ septic_tank+ conc_rainfall+ wastewater+ ground_veg + angle + TC_saprolite_soil
+, fun=sf))
+s
+
+plot(s, which=1:4, pch=1:4, xlab='logit', main=' ', xlim=c(-5,5), cex.lab=1, cex.axis=1, cex.sub=1)
+
+```
+
+
+## Equation 2
+- parameters okay and so/so
+- porportion
+- excluded TC_geol_desf
+
+f2 <- lrm(risk ~ angle + building + EN + TC_saprolito +
+                  Taterro + DepEncNatural + DepTaludeAterro + DepTaludeCorte +
+                  landfill + garbage + construction_deposit + crack +
+                  leaning_wall + scars + downward_floor +tilted +
+                  conc_rainfall_water + wastewater + leak + drainage +
+                  TC_mature_Soil + density + TC + 
+                  tree +ground_veg + deforestation + banana
+          , data=train.data, x=TRUE , y=TRUE)
+          
+          stargazer(anova(f2), type="text", style="default")
+
+
+```{r}
+
+
+eq_OLR_02 <- polr(risk ~ brick+ wood+ EN+  TC_mature_soil+ T_construction+ landfill+ leak+ garbage+ crack+ leaning_wall+ tree+ downward_floor+ tilted+ ground_veg+ scars+ mixed+ conc_rainfall+ wastewater+ angle+ banana+ drainage+ TC_saprolite_soil+ TC+ deforestation,
+                  
+                 data= train.data
+           ,  method = "logistic", Hess = TRUE)
+ctable <- coef(summary(eq_OLR_02))
+
+
+
+
+
+
+
+
+p<- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE*2) #computes p value
+ctable <- cbind(ctable, "p value" = p )
+
+ctable
+stargazer((ctable), type="text", style="default", digits=2)
+```
+
+```{r, fig.height= 12, fig.width= 7}
+par(mfrow=c(6,4))
+plot.xmean.ordinaly (risk~ brick+ wood+ EN+  TC_mature_soil+ T_construction+ landfill+ leak+ garbage+ crack+ leaning_wall+ tree+ downward_floor+ tilted+ ground_veg+ scars+ mixed+ conc_rainfall+ wastewater+ angle+ banana+ drainage+ TC_saprolite_soil+ TC+ deforestation
+          ,data=train.data, cr=TRUE , subn=FALSE ,  cex.lab=1.5, cex.axis=4, cex.sub=4, cex.main=4)
+
+
+```
+
+
+
+```{r,  fig.width=5, fig.height=17}
+sf <- function (y) {
+        c('y>=1' = qlogis(mean(y>=1)),
+          'y>=2' = qlogis(mean(y>=2)),
+           'y>=3' = qlogis(mean(y>=3)),
+            'y>=4' = qlogis(mean(y>=4)))
+}
+
+s<-with(train.data, summary(as.numeric(risk)~brick+ wood+ EN+  TC_mature_soil+ T_construction+ landfill+ leak+ garbage+ crack+ leaning_wall+ tree+ downward_floor+ tilted+ ground_veg+ scars+ mixed+ conc_rainfall+ wastewater+ angle+ banana+ drainage+ TC_saprolite_soil+ TC+ deforestation,data=train.data
+, fun=sf))
+s
+
+plot(s, which=1:4, pch=1:4, xlab='logit', main=' ', xlim=c(-5,5), cex.lab=1, cex.axis=2, cex.sub=1)
+
+```
+
+
+## Equation 3
+- parameters okay and so/so
+- porportion
+- p-value based equation 2  > 0.5
+
+f3 <- lrm(risk ~ angle +building + EN + DepTaludeAterro+  DepTaludeCorte+ crack+ leaning_wall+ scars+ downward_floor+ tilted+ conc_rainfall_water+ wastewater+ tree + TC
+          , data=train.data, x=TRUE , y=TRUE)
+stargazer(anova(f3), type="text", style="default")
+
+```{r}
+
+# x=TRUE, y=TRUE used by resid() below 
+
+eq_OLR_03 <- polr(risk ~ wood+  TC_mature_soil+ T_construction+ landfill+ crack+ leaning_wall+ tree+ downward_floor+ tilted+ ground_veg+ scars+ conc_rainfall+ wastewater+ banana+ drainage, data=train.data
+           ,  method = "logistic", Hess = TRUE)
+ctable <- coef(summary(eq_OLR_03))
+
+
+p<- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE*2) #computes p value
+ctable <- cbind(ctable, "p value" = p )
+
+ctable
+
+
+stargazer((ctable), type="text", style="default", digits = 2)
+#print (f3 , latex =TRUE , coefs =5)
+
+
+```
+
+
+
+```{r, fig.height=7, fig.width=8}
+par(mfrow=c(3,5))
+plot.xmean.ordinaly (risk ~  wood+  TC_mature_soil+ T_construction+ landfill+ crack+ leaning_wall+ tree+ downward_floor+ tilted+ ground_veg+ scars+ conc_rainfall+ wastewater+ banana+ drainage,,
+          data=train.data, cr=TRUE , subn=FALSE , cex.points =0.65)
+```
+
+
+```{r,  fig.width=5, fig.height=9}
+sf <- function (y) {
+        c('y>=1' = qlogis(mean(y>=1)),
+          'y>=2' = qlogis(mean(y>=2)),
+           'y>=3' = qlogis(mean(y>=3)),
+            'y>=4' = qlogis(mean(y>=4)))
+}
+
+s<-with(train.data, summary(as.numeric(risk)~wood+  TC_mature_soil+ T_construction+ landfill+ crack+ leaning_wall+ tree+ downward_floor+ tilted+ ground_veg+ scars+ conc_rainfall+ wastewater+ banana+ drainage, fun=sf))
+s
+
+plot(s, which=1:4, pch=1:4, xlab='logit', main=' ', xlim=c(-5,5), cex.lab=0.6, cex.axis=0.6, cex.sub=0.6)
+
+```
+
+
+## Equation 4
+- p-value equation 3 > 0.05 (banana, DepTaludeCorte)
+- consider proportion 
+- paremeters okay & so/so
+- fashion order
+
+f4 <- lrm(risk ~ building + EN  
+                   + DepEncNatural   
+                    + crack +
+                  leaning_wall + scars + downward_floor +tilted +
+                  conc_rainfall_water + wastewater + drainage +
+                          TC_mature_Soil  + TC + 
+                   +ground_veg   
+           ,data=train.data, x=TRUE , y=TRUE)
+# x=TRUE, y=TRUE used by resid() below 
+#print (f4 , latex =TRUE , coefs =5)
+stargazer(anova(f4), type="text", style="default")
+
+```{r}
+
+
+
+
+eq_OLR_04 <- polr(risk~ wood+  TC_mature_soil+ T_construction+ crack+ leaning_wall+ tree+ downward_floor+ tilted+ ground_veg+ scars+ conc_rainfall+ wastewater+ banana+ drainage
+                  , data= train.data
+           ,  method = "logistic", Hess = TRUE)
+p<- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE*2) #computes p value
+
+ctable <- coef(summary(eq_OLR_04))
+
+ctable <- cbind(ctable, "p value" = p )
+
+ctable
+stargazer((ctable), type="text", style="default", digits=2)
+
+```
+
+
+
+```{r, fig.height=7, fig.width=7}
+par(mfrow=c(4,4))
+plot.xmean.ordinaly (risk ~  wood+  TC_mature_soil+ T_construction+ crack+ leaning_wall+ tree+ downward_floor+ tilted+ ground_veg+ scars+ conc_rainfall+ wastewater+ banana+ drainage
+          ,data=train.data, cr=TRUE , subn=FALSE , cex.points =0.65)
+```
+
+
+
+```{r,  fig.width=6, fig.height=10}
+sf <- function (y) {
+        c('y>=1' = qlogis(mean(y>=1)),
+          'y>=2' = qlogis(mean(y>=2)),
+           'y>=3' = qlogis(mean(y>=3)),
+            'y>=4' = qlogis(mean(y>=4)))
+}
+
+s<-with(train.data, summary(as.numeric(risk)~wood+  TC_mature_soil+ T_construction+ crack+ leaning_wall+ tree+ downward_floor+ tilted+ ground_veg+ scars+ conc_rainfall+ wastewater+ banana+ drainage
+, fun=sf))
+s
+
+plot(s, which=1:4, pch=1:4, xlab='logit', main=' ', xlim=c(-5,5), cex.lab=0.7, cex.axis=0.5, cex.sub=0.5)
+
+```
+
+
+
+
+
+
+## Equation 5 - Based on Equation 1
+
+- based on Eq 1 
+- less p-value > 0.10 (
+
+```{r}
+
+# x=TRUE, y=TRUE used by resid() below 
+#print (f1 , latex =TRUE , coefs =5)
+#stargazer(anova(f1), type="text", style="default")
+
+eq_OLR_05 <- polr(risk ~ brick+ wood+  TC_mature_soil+ T_construction+ crack+ leaning_wall+ scars+ downward_floor+ tilted+ conc_rainfall+ wastewater+ ground_veg,  data= train.data
+           ,  method = "logistic", Hess = TRUE)
+
+ctable <- coef(summary(eq_OLR_05))
+
+p<- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE*2) #computes p value
+ctable <- cbind(ctable, "p value" = p )
+
+ctable
+stargazer((ctable), type="text", style="default", digits = 2)
+
+```
+
+
+
+
+```{r, fig.height=6, fig.width=7}
+par(mfrow=c(3,4))
+plot.xmean.ordinaly (risk ~  brick+ wood+  TC_mature_soil+ T_construction+ crack+ leaning_wall+ scars+ downward_floor+ tilted+ conc_rainfall+ wastewater+ ground_veg
+          ,data=train.data, cr=TRUE , subn=FALSE , cex.points =0.65)
+```
+
+
+
+```{r,  fig.width=6, fig.height=7}
+sf <- function (y) {
+        c('y>=1' = qlogis(mean(y>=1)),
+          'y>=2' = qlogis(mean(y>=2)),
+           'y>=3' = qlogis(mean(y>=3)),
+            'y>=4' = qlogis(mean(y>=4)))
+}
+
+s<-with(train.data, summary(as.numeric(risk)~brick+ wood+  TC_mature_soil+ T_construction+ crack+ leaning_wall+ scars+ downward_floor+ tilted+ conc_rainfall+ wastewater+ ground_veg
+, fun=sf))
+s
+
+plot(s, which=1:4, pch=1:4, xlab='logit', main=' ', xlim=c(-5,5), cex.lab=0.7, cex.axis=0.5, cex.sub=0.5)
+
+```
+
+
+
+##OLR Equation 6
+
+
+
+
+```{r}
+
+# x=TRUE, y=TRUE used by resid() below 
+#print (f1 , latex =TRUE , coefs =5)
+#stargazer(anova(f1), type="text", style="default")
+
+eq_OLR_06 <- polr(risk ~ brick+ wood+ mixed+ EN+ TC+ T_construction+ landfill+ leak+ garbage+ crack+ leaning_wall+ tree+ tilted+ angle+ ground_veg+ scars+ conc_rainfall+ wastewater+ banana,  data= train.data
+           ,  method = "logistic", Hess = TRUE)
+
+ctable <- coef(summary(eq_OLR_06))
+
+p<- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE*2) #computes p value
+ctable <- cbind(ctable, "p value" = p )
+
+ctable
+stargazer((ctable), type="text", style="default", digits = 2)
+
+```
+
+
+
+```{r, fig.height=10, fig.width=7}
+par(mfrow=c(5,4))
+plot.xmean.ordinaly (risk ~  brick+ wood+ mixed+ EN+ TC+ T_construction+ landfill+ leak+ garbage+ crack+ leaning_wall+ tree+ tilted+ angle+ ground_veg+ scars+ conc_rainfall+ wastewater+ banana
+          ,data=train.data, cr=TRUE , subn=FALSE , cex.points =0.65)
+```
+
+
+```{r,  fig.width=7, fig.height=10}
+sf <- function (y) {
+        c('y>=1' = qlogis(mean(y>=1)),
+          'y>=2' = qlogis(mean(y>=2)),
+           'y>=3' = qlogis(mean(y>=3)),
+            'y>=4' = qlogis(mean(y>=4)))
+}
+
+s<-with(train.data, summary(as.numeric(risk)~brick+ wood+ mixed+ EN+ TC+ T_construction+ landfill+ leak+ garbage+ crack+ leaning_wall+ tree+ tilted+ angle+ ground_veg+ scars+ conc_rainfall+ wastewater+ banana
+, fun=sf))
+s
+
+plot(s, which=1:4, pch=1:4, xlab='logit', main=' ', xlim=c(-5,5), cex.lab=0.7, cex.axis=0.5, cex.sub=0.5)
+
+```
+
+
+
+## Predicion on test data Eq 1: http://r-statistics.co/Ordinal-Logistic-Regression-With-R.html
+
+```{r}
+predictedLevel1 <- predict(eq_OLR_01, test.data) # predict the levels directly
+
+predictedScores1 <- predict(eq_OLR_01, test.data, type="p") 
+ # predict the probabilites
+
+## Confusion matrix and misclassification error
+table(test.data$risk, predictedLevel1)
+
+p1 <- mean(as.character(test.data$risk) != as.character(predictedLevel1)) #misclassification error
+p1 
+```
+
+## Predicion on test data Eq 2: http://r-statistics.co/Ordinal-Logistic-Regression-With-R.html
+
+```{r}
+
+predictedLevel2 <- predict(eq_OLR_02, test.data) # predict the levels directly
+
+## Confusion matrix and misclassification error
+table(test.data$risk, predictedLevel2)
+
+p2 <- mean(as.character(test.data$risk) != as.character(predictedLevel2))
+p2
+```
+## Predicion on test data Eq 3: http://r-statistics.co/Ordinal-Logistic-Regression-With-R.html
+
+```{r}
+predictedLevel3 <- predict(eq_OLR_03, test.data) # predict the levels directly
+
+predictedScores1 <- predict(eq_OLR_03, test.data, type="p") 
+ # predict the probabilites
+
+## Confusion matrix and misclassification error
+table(test.data$risk, predictedLevel3)
+
+p3 <- mean(as.character(test.data$risk) != as.character(predictedLevel3))
+p3
+```
+## Predicion on test data Eq 4: http://r-statistics.co/Ordinal-Logistic-Regression-With-R.html
+
+```{r}
+predictedLevel4 <- predict(eq_OLR_04, test.data) # predict the levels directly
+
+predictedScores1 <- predict(eq_OLR_04, test.data, type="p") 
+ # predict the probabilites
+
+## Confusion matrix and misclassification error
+table(test.data$risk, predictedLevel4)
+
+p4 <- mean(as.character(test.data$risk) != as.character(predictedLevel4))
+p4
+```
+
+
+## Predicion on test data Eq 5: http://r-statistics.co/Ordinal-Logistic-Regression-With-R.html
+
+```{r}
+predictedLevel5 <- predict(eq_OLR_05, test.data) # predict the levels directly
+
+predictedScores5 <- predict(eq_OLR_05, test.data, type="p") 
+ # predict the probabilites
+
+## Confusion matrix and misclassification error
+table(test.data$risk, predictedLevel5)
+
+p5 <- mean(as.character(test.data$risk) != as.character(predictedLevel5))
+p5
+```
+
+
+
+
+## Predicion on test data Eq 6: http://r-statistics.co/Ordinal-Logistic-Regression-With-R.html
+
+```{r}
+predictedLevel6 <- predict(eq_OLR_06, test.data) # predict the levels directly
+
+predictedScores6 <- predict(eq_OLR_06, test.data, type="p") 
+ # predict the probabilites
+
+## Confusion matrix and misclassification error
+table(test.data$risk, predictedLevel6)
+
+p6 <- mean(as.character(test.data$risk) != as.character(predictedLevel6))
+p6
+```
+
+
+
+
+## Predicion on test data Eq 7: http://r-statistics.co/Ordinal-Logistic-Regression-With-R.html
+
+```{r}
+#Table 
+
+df2 <- data.frame(
+  
+  "Equations"=c(1:6), 
+  "Predicted"=c(1-p1, 
+                1-p2,
+                1-p3,
+                1-p4,
+                1-p5,
+                1-p6
+               
+              
+    
+    
+  )
+  
+  
+  
+)
+
+df2
+```
+

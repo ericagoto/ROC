@@ -1,0 +1,145 @@
+
+```{r}
+
+#library(plyr)
+angle <- count(train.data$angle) # angle A less than 5% but the rest are okay (3,50, 91, 277, 109) Expected=106
+angle <- angle %>%
+  mutate("Percentage"=(freq/106)*100)%>%
+  mutate("Classifier" = "angle")
+
+
+
+building <- count(train.data$building) %>% #(445, 46, 39) 
+  mutate ("Percentage"=(freq/176.7)*100)%>%
+  mutate("Classifier" = "building")
+
+density <- count(train.data$density)  %>% #(79, 415, 36) # d4 =0 
+  mutate ("Percentage"=(freq/132.5)*100)%>%
+  mutate("Classifier" = "density")
+
+
+EN <- count(train.data$EN) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "EN")
+
+TC <- count(train.data$TC)  %>%
+  mutate ("Percentage"=(freq/265)*100) %>%
+  mutate("Classifier" = "TC")
+
+TC_MatureSoil <- count(train.data$TC_mature_Soil) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "TC_MatureSoil")
+
+
+TC_Saprolito <- count(train.data$TC_saprolito)  %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "TC_Saprolito")
+
+TC_WRock <- count(train.data$TC_weath_rock) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "TC_WRock")
+
+TC_rock <- count(train.data$TC_rock) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "TC_rock")
+
+TC_geol_desfav <- count(train.data$TC_geol_desfav) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "TC_geol_desfav")
+
+Taterro <- count(train.data$Taterro) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "Taterro")
+
+DepEncNatural <- count(train.data$DepEncNatural) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "TC")
+
+DepTaludeAterro <- count(train.data$DepTaludeAterro) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "DepEncNatural")
+
+DepTaludeCorte <- count(train.data$DepTaludeCorte) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "DepTaludeCorte")
+
+DepTaludeAterro <- count(train.data$DepTaludeAterro) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "DepTaludeAterro")
+
+construction_deposit <- count(train.data$construction_deposit) %>%
+  mutate ("Percentage"=(freq/265)*100) %>%
+  mutate("Classifier" = "construction_deposit")
+
+garbage <- count(train.data$garbage) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "garbage")
+
+crack <- count(train.data$crack) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "crack")
+
+leaning_wall <- count(train.data$leaning_wall) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "leaning_wall")
+
+scars <- count(train.data$scars) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "DepTaludeAterro")
+
+downward_floor <- count(train.data$downward_floor) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "scars")
+
+tilted <- count(train.data$tilted) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "tilted")
+
+fracture <- count(train.data$fracture) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "fracture")
+
+conc_rainfall_water <- count(train.data$conc_rainfall_water) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "DepTaludeAterro")
+
+leak <- count(train.data$leak) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "conc_rainfall_water")
+
+wastewater <- count(train.data$wastewater) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "wastewater")
+
+septic_tank <- count(train.data$septic_tank) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "septic_tank")
+
+drainage <- count(train.data$drainage) %>%
+  mutate ("Percentage"=(freq/176.7)*100)%>%
+  mutate("Classifier" = "drainage")
+
+tree <- count(train.data$tree) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "tree")
+
+ground_veg <- count(train.data$ground_veg) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "ground_veg")
+
+deforestation <- count(train.data$deforestation) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "deforestation")
+
+banana <- count(train.data$banana) %>%
+  mutate ("Percentage"=(freq/265)*100)%>%
+  mutate("Classifier" = "banana")
+
+
+df <- rbind(TC, TC_MatureSoil, TC_Saprolito, TC_WRock, TC_rock, TC_geol_desfav, Taterro, DepEncNatural, DepTaludeAterro, DepTaludeCorte,construction_deposit, garbage, crack, leaning_wall, 
+            scars, downward_floor, tilted, fracture, conc_rainfall_water, leak, wastewater, septic_tank, drainage, tree, ground_veg, deforestation, banana, 
+            angle,
+            building, density, EN
+)
+
+```

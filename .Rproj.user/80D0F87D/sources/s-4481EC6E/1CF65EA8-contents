@@ -1,0 +1,135 @@
+---
+title: "ROC Validation"
+author: "Erica Goto"
+date: "3/27/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r library,cache.comments=FALSE, warning=FALSE}
+library(MASS)
+library(tidyverse)
+library(readxl)
+library(car)
+library(stats)
+library(nnet)
+library(glmnet)
+library(boot)
+library(nlstools)
+library (ggplot2)
+library(sf)
+library(rstanarm)
+library(caret)
+library(nnet)
+library(sure)
+library(Hmisc)
+library(stargazer)
+library(rms)
+```
+
+
+## Import dataset
+```{r}
+validation <- read_xlsx("validation.xlsx")
+OLR <- read_xlsx("validation.xlsx")
+```
+
+
+##OLR Dataset
+
+Using OLR
+```{r, warning=FALSE,  include=FALSE}
+OLR$Inclinacao <- as.factor(OLR$Inclinacao) #it is not factor, categories are independent in order of importance. The same with density
+#OLR$building <-factor(OLR$building, levels=c("B", "W", "M"), ordered=TRUE) 
+
+#if (OLR$building  == "B") {0}
+#if(OLR$building  == "W") {1}
+#if(OLR$building  == "M") {2}
+#OLR$building <-as.integer(OLR$building)
+
+OLR$EN <- as.logical(OLR$EN)
+OLR$density <- as.factor(OLR$density)
+OLR$TC <- as.logical(OLR$TC)
+OLR$TC_mature_Soil <- as.logical(OLR$TC_mature_Soil)
+OLR$TC_saprolito <- as.logical(OLR$TC_saprolito)
+OLR$TC_weath_rock <- as.logical(OLR$TC_weath_rock)
+OLR$TC_rock <- as.logical(OLR$TC_rock)
+OLR$TC_geol_desfav <- as.logical(OLR$TC_geol_desfav)
+OLR$Taterro <- as.logical(OLR$Taterro)
+OLR$DepEncosta <- as.logical(OLR$DepEncosta)
+OLR$DepEncNatural <- as.logical(OLR$DepEncNatural)
+OLR$DepTaludeCorte <- as.logical(OLR$DepTaludeCorte)
+OLR$DepTaludeAterro <- as.logical(OLR$DepTaludeAterro)
+OLR$aterro <- as.logical(OLR$aterro)
+OLR$lixo <- as.logical(OLR$lixo)
+OLR$entulho <- as.logical(OLR$entulho)
+OLR$crack <- as.logical(OLR$crack)
+OLR$belly_wall <- as.logical(OLR$belly_wall)
+OLR$scars <- as.logical(OLR$scars)
+OLR$conc_rainfall_water <- as.logical(OLR$conc_rainfall_water)
+OLR$drawback <- as.logical(OLR$drawback)
+OLR$tilted <- as.logical(OLR$tilted)
+OLR$fracture <- as.logical(OLR$fracture)
+OLR$wastewater <- as.logical(OLR$wastewater)
+OLR$leak <- as.logical(OLR$leak)
+OLR$drainage <- factor(OLR$drainage, levels=c("Y", "P", "N"), ordered=TRUE)
+#if(OLR$drainage  == "Y") {0}
+#if(OLR$drainage  == "P"){1}
+#if(OLR$drainage  == "N"){2}
+OLR$drainage <- as.integer(OLR$drainage)
+
+OLR$tree <- as.logical(OLR$tree)
+OLR$ground_veg <- as.logical(OLR$ground_veg)
+OLR$deforestation <- as.logical(OLR$deforestation)
+OLR$banana <- as.logical(OLR$banana)
+OLR$risk <- factor(OLR$risk, levels=c("R1", "R2", "R3", "R4"), ordered=TRUE)
+
+
+```
+
+
+
+##OLR Equation 5
+- Using all variables
+
+##Inspect Dataset Using Training and Validation
+
+```{r, warning=FALSE,  include=FALSE}
+#set.seed(1234)
+training.samples <- OLR$risk %>%
+        createDataPartition(p=0.75, list=FALSE)
+train.data  <- OLR[training.samples, ]
+test.data <- OLR[-training.samples, ]
+```
+
+
+## R Markdown
+
+AHP 
+
+
+
+
+OLR
+
+```{r}
+f3 <- lrm(risk ~ building + EN + TC_mature_Soil 
+ + crack + belly_wall + tilted + lixo + 
+     scars + drawback  + conc_rainfall_water + wastewater + 
+    + tree + ground_veg + angle  
+          , data=train.data, x=TRUE , y=TRUE)
+# x=TRUE, y=TRUE used by resid() below 
+
+eq_OLR_03 <- polr(risk ~building + EN + TC_mature_Soil 
+ + crack + belly_wall + tilted + lixo + 
+     scars + drawback  + conc_rainfall_water + wastewater + 
+    + tree + ground_veg + angle,
+ data= train.data
+           ,  method = "logistic", Hess = TRUE)
+ctable <- coef(summary(eq_OLR_03))
+
+```
+

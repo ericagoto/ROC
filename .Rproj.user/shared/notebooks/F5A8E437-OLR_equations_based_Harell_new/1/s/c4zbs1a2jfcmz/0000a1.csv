@@ -1,0 +1,2 @@
+"0","par(mfrow=c(6,5))"
+"0","plot.xmean.ordinaly (risk~angle+brick+wood+mixed+ density+EN +TC + TC_mature_soil + TC_saprolite_soil +  TC_weath_rock  + TC_unstable_structure  + T_construction  + spring +  landfill + garbage  + crack + leaning_wall + scars + downward_floor + tilted + fracture + conc_rainfall + wastewater + leak + septic_tank  + tree + ground_veg + deforestation + banana + drainage, data=train.data, cr=TRUE , subn=FALSE)"

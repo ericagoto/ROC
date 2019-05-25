@@ -1,0 +1,6 @@
+"0","library(MASS)"
+"0","knitr::opts_chunk$set(echo = TRUE)"
+"0","vclust <- varclus (~ angle + building+EN +TC + TC_mature_Soil + TC_saprolito +  TC_weath_rock + TC_rock + TC_geol_desfav + Taterro + DepEncNatural + DepTaludeAterro + DepTaludeCorte + DepTaludeAterro + landfill + garbage + construction_deposit + crack + leaning_wall + scars + downward_floor + tilted + fracture + conc_rainfall_water + wastewater + leak + septic_tank + drainage + tree + ground_veg + deforestation + banana , data=train.data)"
+"2","Error in varclus(~angle + building + EN + TC + TC_mature_Soil + TC_saprolito +  : 
+  could not find function ""varclus""
+"
